@@ -6,8 +6,27 @@ on:
   pull_request:
 
 jobs:
-  build-test:
+  rust:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - run: cargo fmt --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      # The trusted core has zero third-party dependencies — prove it in CI.
+      - name: core has zero dependencies
+        run: |
+          extra=$(cargo tree -p canonical-core --edges normal --prefix none | grep -v '^canonical-core ' | wc -l)
+          test "$extra" -eq 0 || (cargo tree -p canonical-core && echo "::error::canonical-core has dependencies" && exit 1)
+
+  typescript:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ts
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
