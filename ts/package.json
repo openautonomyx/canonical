@@ -4,7 +4,7 @@
   "description": "The Canonical Autonomyx — a zero-dependency, zero-trust, edge-native agent core. Trust is not based on origin; the only trust is an explicit CORS contract held by the provider and enforced at the edge.",
   "type": "module",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "engines": {
     "node": ">=22.6"
   },

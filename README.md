@@ -5,9 +5,10 @@ The reference agent **core** for AutonomyX — and the trust model underneath it
 **Zero dependencies. Zero trust. Native at the edge. Built, not composed.**
 
 ```
-crates/canonical-core   Rust — the single, independent, complete working unit (the trusted core)
-crates/edge-cli         Rust — a std-only command line at the edge
-ts/                     TypeScript — the runtime layer, sharing the same primitive
+crates/canonical-core      Rust — the single, independent, complete working unit (the trusted core)
+crates/canonical-runtime   Rust — userland: working groups, wire codec, TCP network edge
+crates/edge-cli            Rust — a std-only command line at the edge
+ts/                        TypeScript — the runtime layer, sharing the same primitive
 ```
 
 The Rust core and the TypeScript core are **one trust domain**: a contract signed
@@ -95,8 +96,9 @@ They are verified to interoperate:
 ### Rust core (`crates/`)
 
 ```bash
-cargo test --workspace      # crypto vectors + the full trust model
+cargo test --workspace            # crypto vectors + the full trust model + transport
 cargo run -p edge-cli -- demo     # a guided allow/deny tour
+cargo run -p edge-cli -- net-demo # the same trust decision across a real TCP socket
 cargo run -p edge-cli -- keygen   # generate an identity (seed + id)
 ```
 
@@ -133,9 +135,14 @@ See [`ts/README.md`](ts/README.md) for the TypeScript API.
 - The edge enforces; nothing trusts the network or location.
 - Rust and TypeScript cores produce identical signed bytes — one trust domain.
 
+## Trust controls
+
+- **Short-lived & time-boxed contracts** — `expiry` and `notBefore` caveats, fail-closed.
+- **Revocation** — a provider withdraws a contract; revoking a parent also invalidates everything delegated from it. Provider-local, no network.
+- **Network edge** — messages cross a real TCP boundary; the receiving edge decides, exactly as in-process. The transport is dumb; trust lives at the edge.
+
 ## Roadmap
 
 - Threshold / rotating provider keys (no single long-lived root).
-- Transports (the contract is transport-agnostic; messages are just bytes).
-- Revocation and short-lived contracts as first-class caveats.
+- More transports (the contract is transport-agnostic; messages are just bytes).
 - `no_std` / WASM build of the Rust core for non-JS edges.

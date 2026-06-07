@@ -7,8 +7,16 @@ name = "canonical-core"
 version = "0.1.0"
 
 [[package]]
+name = "canonical-runtime"
+version = "0.1.0"
+dependencies = [
+ "canonical-core",
+]
+
+[[package]]
 name = "edge-cli"
 version = "0.1.0"
 dependencies = [
  "canonical-core",
+ "canonical-runtime",
 ]

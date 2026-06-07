@@ -16,6 +16,16 @@ export interface Caveat {
   readonly [k: string]: unknown;
 }
 
+/** A short-lived contract: invalid after `notAfter` (ms since epoch). */
+export function expiry(notAfter: number): Caveat {
+  return { type: "expiry", notAfter };
+}
+
+/** A contract that only becomes valid at `notBefore` (ms since epoch). */
+export function notBefore(notBefore: number): Caveat {
+  return { type: "notBefore", notBefore };
+}
+
 export interface CorsGrant {
   /** who signed this link of the contract — the provider, or a re-delegator. */
   readonly issuer: string;
@@ -42,6 +52,9 @@ function caveatsHold(caveats: readonly Caveat[] | undefined, now: number): Grant
     if (c.type === "expiry") {
       const notAfter = c["notAfter"];
       if (typeof notAfter !== "number" || now > notAfter) return { ok: false, reason: "contract expired" };
+    } else if (c.type === "notBefore") {
+      const nb = c["notBefore"];
+      if (typeof nb !== "number" || now < nb) return { ok: false, reason: "contract not yet valid" };
     } else {
       // Fail closed: an edge that does not understand a caveat must not honour it.
       return { ok: false, reason: `unknown caveat '${c.type}'` };

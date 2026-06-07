@@ -74,6 +74,12 @@ export class Core {
     );
   }
 
+  /** Withdraw a contract this core issued. Revoking a parent also invalidates
+   * everything delegated from it. */
+  revoke(contract: CorsGrant): void {
+    this.edge.revoke(contract.sig);
+  }
+
   /** Receive a message: decide at the edge, then execute only if admitted. */
   async handle(msg: Message): Promise<Outcome> {
     const decision = await this.edge.admit(msg);

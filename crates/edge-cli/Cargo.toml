@@ -9,6 +9,7 @@ repository.workspace = true
 # Also zero third-party dependencies — std only.
 [dependencies]
 canonical-core = { path = "../canonical-core" }
+canonical-runtime = { path = "../canonical-runtime" }
 
 [lints.rust]
 unsafe_code = "forbid"

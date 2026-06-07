@@ -15,13 +15,25 @@ use crate::resource::{action_subsumes, resource_subsumes};
 pub struct Caveat {
     pub kind: String,
     pub not_after: Option<i64>,
+    pub not_before: Option<i64>,
 }
 
 impl Caveat {
+    /// A short-lived contract: invalid after `not_after` (ms since epoch).
     pub fn expiry(not_after: i64) -> Caveat {
         Caveat {
             kind: "expiry".into(),
             not_after: Some(not_after),
+            not_before: None,
+        }
+    }
+
+    /// A contract that only becomes valid at `not_before`.
+    pub fn not_before(not_before: i64) -> Caveat {
+        Caveat {
+            kind: "notBefore".into(),
+            not_after: None,
+            not_before: Some(not_before),
         }
     }
 
@@ -29,6 +41,7 @@ impl Caveat {
         Caveat {
             kind: kind.into(),
             not_after: None,
+            not_before: None,
         }
     }
 
@@ -37,6 +50,9 @@ impl Caveat {
         m.insert("type".to_string(), Json::str(self.kind.clone()));
         if let Some(n) = self.not_after {
             m.insert("notAfter".to_string(), Json::Int(n));
+        }
+        if let Some(n) = self.not_before {
+            m.insert("notBefore".to_string(), Json::Int(n));
         }
         Json::Obj(m)
     }
@@ -171,14 +187,17 @@ fn verify_grant_depth(grant: &CorsGrant, provider_id: &str, now: i64, depth: u32
         return deny("invalid contract signature");
     }
     for c in &grant.caveats {
-        if c.kind == "expiry" {
-            match c.not_after {
+        match c.kind.as_str() {
+            "expiry" => match c.not_after {
                 Some(n) if now <= n => {}
                 _ => return deny("contract expired"),
-            }
-        } else {
+            },
+            "notBefore" => match c.not_before {
+                Some(n) if now >= n => {}
+                _ => return deny("contract not yet valid"),
+            },
             // fail closed: an edge that does not understand a caveat must not honour it
-            return deny(&format!("unknown caveat '{}'", c.kind));
+            other => return deny(&format!("unknown caveat '{other}'")),
         }
     }
     if grant.issuer == provider_id {

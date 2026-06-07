@@ -95,6 +95,12 @@ impl Core {
         )
     }
 
+    /// Withdraw a contract this core issued. Revoking a parent also invalidates
+    /// everything delegated from it.
+    pub fn revoke(&mut self, contract: &CorsGrant) {
+        self.edge.revoke(contract.sig.clone());
+    }
+
     /// Receive a message: decide at the edge, then execute only if admitted.
     pub fn handle(&mut self, msg: &Message) -> Outcome {
         let decision = self.edge.admit(msg);

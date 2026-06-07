@@ -212,6 +212,79 @@ fn unknown_caveat_fails_closed() {
 }
 
 #[test]
+fn not_before_caveat_is_enforced() {
+    let owner = Signer::generate().unwrap();
+    let sub = Signer::generate().unwrap();
+    let resource = make_resource(&owner.id, "x");
+    let grant = issue_grant(
+        &owner,
+        IssueParams {
+            subject: &sub.id,
+            action: "invoke",
+            resource: &resource,
+            caveats: vec![Caveat::not_before(1000)],
+            proof: None,
+        },
+        0,
+    );
+    assert!(!verify_grant(&grant, &owner.id, 500).ok); // not yet valid
+    assert!(verify_grant(&grant, &owner.id, 1500).ok); // now valid
+}
+
+#[test]
+fn revoking_a_contract_denies_further_use() {
+    let (alice, mut bob, echo) = echo_core();
+    let grant = bob.share(alice.id(), "tool/echo", "invoke", vec![]);
+    let first = invoke(
+        alice.signer(),
+        bob.id(),
+        &echo,
+        Json::str("hi"),
+        Some(grant.clone()),
+    );
+    assert!(bob.handle(&first).decision.ok);
+
+    bob.revoke(&grant);
+    let second = invoke(
+        alice.signer(),
+        bob.id(),
+        &echo,
+        Json::str("hi"),
+        Some(grant),
+    );
+    let out = bob.handle(&second);
+    assert!(!out.decision.ok);
+    assert_eq!(out.decision.reason.as_deref(), Some("contract revoked"));
+}
+
+#[test]
+fn revoking_a_parent_invalidates_its_delegations() {
+    let (alice, mut bob, echo) = echo_core();
+    let carol = Core::create().unwrap();
+    let parent = bob.share(alice.id(), "tool/echo", "invoke", vec![]);
+    let sub = attenuate(
+        alice.signer(),
+        &parent,
+        carol.id(),
+        None,
+        None,
+        vec![],
+        now_ms(),
+    );
+
+    // revoke the parent; the delegated sub-contract must stop working too
+    bob.revoke(&parent);
+    let msg = invoke(
+        carol.signer(),
+        bob.id(),
+        &echo,
+        Json::str("via carol"),
+        Some(sub),
+    );
+    assert!(!bob.handle(&msg).decision.ok);
+}
+
+#[test]
 fn contract_not_rooted_at_provider_is_rejected() {
     let owner = Signer::generate().unwrap();
     let stranger = Signer::generate().unwrap();

@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "crates/canonical-core",
+  "crates/canonical-runtime",
   "crates/edge-cli",
 ]
 resolver = "2"

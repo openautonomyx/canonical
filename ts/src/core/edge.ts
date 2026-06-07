@@ -9,7 +9,7 @@
 // at the boundary itself.
 
 import { verifyRecord } from "./identity.ts";
-import { authorizes, verifyGrant } from "./cors.ts";
+import { authorizes, verifyGrant, type CorsGrant } from "./cors.ts";
 import { resourceOwner } from "./resource.ts";
 import type { Message } from "./message.ts";
 
@@ -34,11 +34,19 @@ export class Edge {
   private readonly now: () => number;
   private readonly windowMs: number;
   private readonly seen = new Set<string>();
+  private readonly revoked = new Set<string>();
 
   constructor(opts: EdgeOptions) {
     this.ownerId = opts.ownerId;
     this.now = opts.now ?? (() => Date.now());
     this.windowMs = opts.freshnessWindowMs ?? 60_000;
+  }
+
+  /** Revoke a contract by its signature. Any request whose contract chain passes
+   * through a revoked link is denied — so revoking a parent also invalidates
+   * everything delegated from it. Provider-local; no network. */
+  revoke(sig: string): void {
+    this.revoked.add(sig);
   }
 
   /** The complete trust decision for one request — pure CORS, at the boundary. */
@@ -59,6 +67,12 @@ export class Edge {
     if (!authorizes(msg.grant, msg.action, msg.resource)) return deny("contract does not authorize this action/resource");
     const g = await verifyGrant(msg.grant, this.ownerId, now);
     if (!g.ok) return deny("invalid contract: " + g.reason);
+    // Revocation: deny if any link in the contract chain has been revoked.
+    if (this.revoked.size > 0) {
+      for (let link: CorsGrant | undefined = msg.grant; link; link = link.proof) {
+        if (this.revoked.has(link.sig)) return deny("contract revoked");
+      }
+    }
     // Consume the nonce only once the request is fully admitted.
     this.seen.add(msg.nonce);
     return ALLOW;

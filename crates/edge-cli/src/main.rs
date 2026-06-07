@@ -22,6 +22,7 @@ fn main() -> ExitCode {
         "keygen" => keygen(),
         "id" => id(args.get(1)),
         "demo" => demo(),
+        "net-demo" => net_demo(),
         "help" | "-h" | "--help" => {
             usage();
             Ok(())
@@ -47,6 +48,7 @@ fn usage() {
     println!("  edge keygen        generate an identity (seed + id)");
     println!("  edge id <seed>     derive the public id from a base64url seed");
     println!("  edge demo          a guided allow/deny tour of the core");
+    println!("  edge net-demo      the same trust decision across a real TCP socket");
 }
 
 fn read_seed() -> std::io::Result<[u8; 32]> {
@@ -208,5 +210,71 @@ fn demo() -> std::io::Result<()> {
         render(&bob.handle(&m))
     );
 
+    Ok(())
+}
+
+fn net_demo() -> std::io::Result<()> {
+    use canonical_runtime::{call, serve_once};
+    use std::net::TcpListener;
+    use std::thread;
+
+    println!("Canonical Autonomyx — network edge demo");
+    println!("=======================================\n");
+
+    let alice = Core::create()?;
+    let mut bob = Core::create()?;
+    bob.expose("tool/echo", |payload| {
+        let mut m = BTreeMap::new();
+        m.insert("echo".to_string(), payload);
+        Json::Obj(m)
+    });
+    let echo = bob.resource("tool/echo");
+
+    // Bob shares with Alice; capture what the client needs before Bob moves to its thread.
+    let contract = bob.share(alice.id(), "tool/echo", "invoke", vec![]);
+    let bob_id = bob.id().to_string();
+
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let addr = listener.local_addr()?;
+    println!("bob is listening on {addr}\n");
+
+    // Bob's edge runs on another thread, serving two connections over real TCP.
+    let server = thread::spawn(move || {
+        let _ = serve_once(&mut bob, &listener);
+        let _ = serve_once(&mut bob, &listener);
+    });
+
+    let render_wire = |r: &canonical_runtime::WireOutcome| -> String {
+        if r.ok {
+            format!(
+                "ALLOW  {}",
+                r.result.as_ref().map(render_json).unwrap_or_default()
+            )
+        } else {
+            format!("DENY   ({})", r.reason.clone().unwrap_or_default())
+        }
+    };
+
+    // 1. no contract, over the wire -> the remote edge denies.
+    let m1 = invoke(alice.signer(), &bob_id, &echo, Json::str("hi"), None)?;
+    println!(
+        "1. remote invoke, no contract     -> {}",
+        render_wire(&call(addr, &m1)?)
+    );
+
+    // 2. with Bob's contract, over the wire -> allowed at the remote edge.
+    let m2 = invoke(
+        alice.signer(),
+        &bob_id,
+        &echo,
+        Json::str("hi"),
+        Some(contract),
+    )?;
+    println!(
+        "2. remote invoke with contract    -> {}",
+        render_wire(&call(addr, &m2)?)
+    );
+
+    server.join().ok();
     Ok(())
 }

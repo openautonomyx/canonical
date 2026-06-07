@@ -37,6 +37,7 @@ pub struct Edge {
     owner_id: String,
     window_ms: i64,
     seen: HashSet<String>,
+    revoked: HashSet<String>,
 }
 
 impl Edge {
@@ -49,7 +50,15 @@ impl Edge {
             owner_id,
             window_ms,
             seen: HashSet::new(),
+            revoked: HashSet::new(),
         }
+    }
+
+    /// Revoke a contract by its signature. Any request whose contract chain
+    /// passes through a revoked link is denied — so revoking a parent also
+    /// invalidates everything delegated from it. Provider-local; no network.
+    pub fn revoke(&mut self, sig: impl Into<String>) {
+        self.revoked.insert(sig.into());
     }
 
     /// The complete trust decision for one request — pure CORS, at the boundary.
@@ -96,6 +105,16 @@ impl Edge {
                 "invalid contract: {}",
                 gc.reason.unwrap_or_default()
             ));
+        }
+        // revocation: deny if any link in the contract chain has been revoked
+        if !self.revoked.is_empty() {
+            let mut link = Some(grant);
+            while let Some(cur) = link {
+                if self.revoked.contains(&cur.sig) {
+                    return Decision::deny("contract revoked");
+                }
+                link = cur.proof.as_deref();
+            }
         }
         self.seen.insert(msg.nonce.clone());
         Decision::allow()
