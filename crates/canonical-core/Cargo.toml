@@ -1,0 +1,13 @@
+[package]
+name = "canonical-core"
+version = "0.1.0"
+description = "The single, independent, complete working unit: a zero-dependency, zero-trust, edge-native agent core."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# Zero dependencies, by design. This is the trusted computing base.
+[dependencies]
+
+[lints.rust]
+unsafe_code = "forbid"

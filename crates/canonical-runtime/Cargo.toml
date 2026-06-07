@@ -1,0 +1,13 @@
+[package]
+name = "canonical-runtime"
+version = "0.1.0"
+description = "Userland built on the canonical core: working groups, a wire codec, and a network-edge transport. Std only, zero third-party dependencies."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+canonical-core = { path = "../canonical-core" }
+
+[lints.rust]
+unsafe_code = "forbid"

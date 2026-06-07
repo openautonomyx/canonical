@@ -1,0 +1,19 @@
+[package]
+name = "edge-cli"
+version = "0.1.0"
+description = "A std-only command line at the edge of the canonical core."
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# Also zero third-party dependencies — std only.
+[dependencies]
+canonical-core = { path = "../canonical-core" }
+canonical-runtime = { path = "../canonical-runtime" }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[[bin]]
+name = "edge"
+path = "src/main.rs"
