@@ -2,11 +2,17 @@
 
 Canonical AutonomyX is an edge-native platform substrate for recording identity, execution, evidence, and outcome as a replayable workspace.
 
-## Platform Build Block
+## Box
 
-The first building block is the `platform-build-block`.
+The canonical core is the `box`.
 
-It is the smallest reusable unit that records:
+A box is one hardware-bounded storage unit for platform truth.
+
+Its practical capacity depends on the storage capacity of the device where it runs.
+
+Software composes on top of the box. The box does not depend on a specific software framework.
+
+This first box stores:
 
 ```text
 Identity
@@ -15,7 +21,7 @@ Evidence
 Outcome
 ```
 
-into a replayable workspace.
+as a replayable workspace.
 
 The current Rust implementation is in:
 
@@ -23,7 +29,7 @@ The current Rust implementation is in:
 crates/canonical-core
 ```
 
-This crate currently implements the `platform-build-block` contract.
+This crate currently implements the `box` contract.
 
 ## First Executable Loop
 
@@ -84,9 +90,9 @@ crates/edge-cli
 
 ## Boundary
 
-The platform build block owns the substrate.
+The box owns the substrate.
 
-Adapters, federation, dashboards, cloud deployment, policy engines, and external systems remain outside the block.
+Adapters, federation, dashboards, cloud deployment, policy engines, and external systems remain outside the box.
 
 ## ActivityPub
 
@@ -96,4 +102,4 @@ ActivityPub alignment is documented in:
 docs/activitypub-alignment.md
 ```
 
-ActivityPub is treated as a federation adapter, not as the platform build block.
+ActivityPub is treated as a federation adapter, not as the box.
