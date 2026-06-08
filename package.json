@@ -1,0 +1,30 @@
+{
+  "name": "@openautonomyx/canonical",
+  "version": "0.1.0",
+  "description": "Canonical AutonomyX edge platform CLI wrapper",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openautonomyx/canonical.git"
+  },
+  "bin": {
+    "canonical-edge": "./npm/bin/canonical-edge.js"
+  },
+  "files": [
+    "npm/bin/canonical-edge.js",
+    "README.md",
+    "examples"
+  ],
+  "scripts": {
+    "build": "cargo build --workspace --locked",
+    "test:mvp": "cargo run -p edge-cli -- run --task examples/tasks/basic-task.json --workspace .canonical/session.jsonl && cargo run -p edge-cli -- replay --workspace .canonical/session.jsonl && cargo run -p edge-cli -- validate --workspace .canonical/session.jsonl && cargo run -p edge-cli -- report --workspace .canonical/session.jsonl --out reports/out/canonical-edge-report.md"
+  },
+  "keywords": [
+    "autonomyx",
+    "canonical",
+    "edge",
+    "box",
+    "evidence",
+    "replay"
+  ]
+}
