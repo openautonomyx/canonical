@@ -46,7 +46,7 @@ pub struct StructuredBox {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BoxPack {
     pub format: String,
-    pub packed_at: DateTime<Utc>,
+    pub pack_at: DateTime<Utc>,
     pub box_id: String,
     pub data: StructuredBox,
 }
@@ -95,10 +95,10 @@ impl StructuredBox {
         self.payload.boxes.last().expect("micro box was just pushed")
     }
 
-    pub fn pack(self) -> BoxPack {
+    pub fn pack_box(self) -> BoxPack {
         BoxPack {
             format: BOX_PACK_VERSION.to_string(),
-            packed_at: Utc::now(),
+            pack_at: Utc::now(),
             box_id: self.header.id.clone(),
             data: self,
         }
@@ -106,7 +106,7 @@ impl StructuredBox {
 }
 
 impl BoxPack {
-    pub fn unpack(self) -> Result<StructuredBox> {
+    pub fn open_box(self) -> Result<StructuredBox> {
         if self.format != BOX_PACK_VERSION {
             return Err(anyhow!("unsupported box pack format: {}", self.format));
         }
