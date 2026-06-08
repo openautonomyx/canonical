@@ -1,0 +1,45 @@
+name: canonical-edge-ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  canonical-edge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --workspace --locked
+
+      - name: Run canonical edge loop
+        run: |
+          cargo run -p edge-cli -- run \
+            --task examples/tasks/basic-task.json \
+            --workspace .canonical/session.jsonl
+
+      - name: Replay workspace
+        run: |
+          cargo run -p edge-cli -- replay \
+            --workspace .canonical/session.jsonl
+
+      - name: Validate workspace
+        run: |
+          cargo run -p edge-cli -- validate \
+            --workspace .canonical/session.jsonl
+
+      - name: Generate report
+        run: |
+          cargo run -p edge-cli -- report \
+            --workspace .canonical/session.jsonl \
+            --out reports/out/canonical-edge-report.md
+
+      - name: Assert artifacts
+        run: |
+          test -s .canonical/session.jsonl
+          test -s reports/out/canonical-edge-report.md
