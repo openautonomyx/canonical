@@ -1,0 +1,450 @@
+openapi: 3.1.0
+info:
+  title: Fabric Contract API
+  version: 0.1.0
+  summary: OpenAPI contract surface for Fabric PlatformContract, AgentContract, Box, and DeliveryReceipt.
+  description: |
+    Fabric Contract API defines the machine-readable API boundary for Fabric.
+    PlatformContract is the contract authority. AgentContract binds an agent to the contract.
+    Box carries the gap between accepted instruction and proven delivery. DeliveryReceipt records the terminal outcome with evidence.
+  license:
+    name: Apache-2.0
+servers:
+  - url: https://api.openautonomyx.com/fabric/v1
+    description: Production API placeholder
+  - url: http://localhost:8080/fabric/v1
+    description: Local development
+security:
+  - bearerAuth: []
+tags:
+  - name: Contracts
+    description: Platform and agent contract APIs.
+  - name: Boxes
+    description: Box lifecycle APIs.
+  - name: Delivery
+    description: Delivery receipt and evidence APIs.
+paths:
+  /contracts/platform:
+    post:
+      tags: [Contracts]
+      operationId: createPlatformContract
+      summary: Create or register a platform contract.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlatformContract'
+      responses:
+        '201':
+          description: Platform contract accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformContract'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /contracts/platform/{contractId}:
+    get:
+      tags: [Contracts]
+      operationId: getPlatformContract
+      summary: Read a platform contract by id.
+      parameters:
+        - $ref: '#/components/parameters/ContractId'
+      responses:
+        '200':
+          description: Platform contract.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformContract'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /contracts/agent:
+    post:
+      tags: [Contracts]
+      operationId: bindAgentContract
+      summary: Bind an agent to a platform contract.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentContract'
+      responses:
+        '201':
+          description: Agent contract accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentContract'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /boxes:
+    post:
+      tags: [Boxes]
+      operationId: createBox
+      summary: Create a Box for a contract-bound delivery.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StructuredBox'
+      responses:
+        '201':
+          description: Box created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredBox'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /boxes/{boxId}:
+    get:
+      tags: [Boxes]
+      operationId: getBox
+      summary: Read a Box by id.
+      parameters:
+        - $ref: '#/components/parameters/BoxId'
+      responses:
+        '200':
+          description: Box.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredBox'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /boxes/{boxId}/microboxes:
+    post:
+      tags: [Boxes]
+      operationId: appendMicroBox
+      summary: Append a MicroBox instruction/output/evidence unit.
+      parameters:
+        - $ref: '#/components/parameters/BoxId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MicroBox'
+      responses:
+        '201':
+          description: MicroBox appended.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MicroBox'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /boxes/{boxId}/pack:
+    post:
+      tags: [Boxes]
+      operationId: packBox
+      summary: Pack a Box for transfer, verification, or storage.
+      parameters:
+        - $ref: '#/components/parameters/BoxId'
+      responses:
+        '200':
+          description: BoxPack.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoxPack'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /boxes/open:
+    post:
+      tags: [Boxes]
+      operationId: openBoxPack
+      summary: Open and validate a BoxPack.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BoxPack'
+      responses:
+        '200':
+          description: Opened Box.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StructuredBox'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+  /delivery/receipts:
+    post:
+      tags: [Delivery]
+      operationId: createDeliveryReceipt
+      summary: Record a terminal delivery outcome with evidence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryReceipt'
+      responses:
+        '201':
+          description: Delivery receipt recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeliveryReceipt'
+        default:
+          $ref: '#/components/responses/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    ContractId:
+      name: contractId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+    BoxId:
+      name: boxId
+      in: path
+      required: true
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    ErrorResponse:
+      description: Error response.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    PlatformContract:
+      type: object
+      required: [id, version, scope, instructionRoot, evidenceRequired]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        version:
+          type: string
+          const: platform.contract.v0.1
+        scope:
+          type: string
+          minLength: 1
+        instructionRoot:
+          type: string
+          const: instruct.box
+        policy:
+          type: object
+          additionalProperties: true
+        evidenceRequired:
+          type: boolean
+    AgentContract:
+      type: object
+      required: [agentId, platformContractId, platformContractVersion, acceptedInstructionRoot, deliveryBoundary]
+      additionalProperties: false
+      properties:
+        agentId:
+          type: string
+          minLength: 1
+        platformContractId:
+          type: string
+          minLength: 1
+        platformContractVersion:
+          type: string
+          const: platform.contract.v0.1
+        acceptedInstructionRoot:
+          type: string
+          const: instruct.box
+        deliveryBoundary:
+          type: string
+          minLength: 1
+        requiredSkills:
+          type: array
+          items:
+            type: string
+        toolPermissions:
+          type: array
+          items:
+            type: string
+        expectedOutput:
+          type: object
+          additionalProperties: true
+        evidenceObligations:
+          type: array
+          items:
+            type: string
+    StructuredInstruction:
+      type: object
+      required: [root, verb, scope]
+      additionalProperties: false
+      properties:
+        root:
+          type: string
+          const: instruct.box
+        verb:
+          $ref: '#/components/schemas/InstructionVerb'
+        scope:
+          $ref: '#/components/schemas/InstructionScope'
+        constraints:
+          type: object
+          additionalProperties: true
+        payload:
+          type: object
+          additionalProperties: true
+    InstructionVerb:
+      type: string
+      enum: [create, open, append, read, verify, replay, report, seal, ship]
+    InstructionScope:
+      type: string
+      enum: [edge, local, workspace, registry]
+    StructuredBox:
+      type: object
+      required: [header, manifest, payload]
+      additionalProperties: false
+      properties:
+        header:
+          $ref: '#/components/schemas/BoxHeader'
+        manifest:
+          $ref: '#/components/schemas/BoxManifest'
+        payload:
+          $ref: '#/components/schemas/BoxPayload'
+    BoxHeader:
+      type: object
+      required: [id, version, createdAt]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        version:
+          type: string
+          const: box.v0.1
+        createdAt:
+          type: string
+          format: date-time
+        integrity:
+          type: object
+          additionalProperties: true
+    BoxManifest:
+      type: object
+      required: [identity]
+      additionalProperties: false
+      properties:
+        identity:
+          type: object
+          additionalProperties: true
+        direction:
+          type: object
+          additionalProperties: true
+        contract:
+          type: object
+          additionalProperties: true
+    BoxPayload:
+      type: object
+      additionalProperties: false
+      properties:
+        boxes:
+          type: array
+          items:
+            $ref: '#/components/schemas/MicroBox'
+        evidence:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        artifacts:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    MicroBox:
+      type: object
+      required: [id, seq, instruction]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+        seq:
+          type: integer
+          minimum: 0
+        instruction:
+          $ref: '#/components/schemas/StructuredInstruction'
+        state:
+          type: object
+          additionalProperties: true
+        output:
+          type: object
+          additionalProperties: true
+        evidence:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+    BoxPack:
+      type: object
+      required: [format, packAt, boxId, data]
+      additionalProperties: false
+      properties:
+        format:
+          type: string
+          const: pack.box.v0.1
+        packAt:
+          type: string
+          format: date-time
+        boxId:
+          type: string
+          minLength: 1
+        data:
+          $ref: '#/components/schemas/StructuredBox'
+    DeliveryState:
+      type: string
+      enum: [delivered, failed_with_evidence, rejected_with_reason]
+    DeliveryReceipt:
+      type: object
+      required: [contractId, agentId, state, summary, evidence]
+      additionalProperties: false
+      properties:
+        contractId:
+          type: string
+          minLength: 1
+        agentId:
+          type: string
+          minLength: 1
+        state:
+          $ref: '#/components/schemas/DeliveryState'
+        summary:
+          type: string
+          minLength: 1
+        evidence:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: true
+    Problem:
+      type: object
+      required: [type, title, status, detail]
+      additionalProperties: true
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 100
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
