@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package openautonomyx.canonical.v1;
+
+// ORB = Observe, Reason, Behave
+// Canonical operational model.
+
+enum OrbStage {
+  ORB_STAGE_UNSPECIFIED = 0;
+  ORB_STAGE_OBSERVE = 1;
+  ORB_STAGE_REASON = 2;
+  ORB_STAGE_BEHAVE = 3;
+}
+
+message Observe {
+  string context_ref = 1;
+}
+
+message Reason {
+  string context_ref = 1;
+  string decision_ref = 2;
+}
+
+message Behave {
+  string decision_ref = 1;
+  string outcome_ref = 2;
+}
+
+message OrbCycle {
+  string id = 1;
+  Observe observe = 2;
+  Reason reason = 3;
+  Behave behave = 4;
+}
