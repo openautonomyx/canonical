@@ -1,0 +1,16 @@
+{
+  "identity": {
+    "actor": "builder",
+    "context": "edge",
+    "intent": "prove the canonical edge loop"
+  },
+  "execution": {
+    "action": "record canonical execution",
+    "constraints": [
+      "edge_native",
+      "runtime_core",
+      "kernel_native"
+    ],
+    "expected_outcome": "workspace, replay summary, validation, and report"
+  }
+}
