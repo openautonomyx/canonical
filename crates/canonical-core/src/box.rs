@@ -13,13 +13,13 @@ pub struct StructuredBox {
     #[serde(default)]
     pub direction: Value,
     #[serde(default)]
-    pub boxes: Vec<MiniBox>,
+    pub boxes: Vec<MicroBox>,
     #[serde(default)]
     pub evidence: Vec<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MiniBox {
+pub struct MicroBox {
     pub id: String,
     pub seq: u64,
     pub instruction: StructuredInstruction,
@@ -44,8 +44,8 @@ impl StructuredBox {
         }
     }
 
-    pub fn push_box(&mut self, instruction: StructuredInstruction) -> &MiniBox {
-        let mini_box = MiniBox {
+    pub fn push_box(&mut self, instruction: StructuredInstruction) -> &MicroBox {
+        let micro_box = MicroBox {
             id: Uuid::new_v4().to_string(),
             seq: self.boxes.len() as u64,
             instruction,
@@ -53,7 +53,7 @@ impl StructuredBox {
             output: Value::Object(Default::default()),
             evidence: Vec::new(),
         };
-        self.boxes.push(mini_box);
-        self.boxes.last().expect("mini box was just pushed")
+        self.boxes.push(micro_box);
+        self.boxes.last().expect("micro box was just pushed")
     }
 }
