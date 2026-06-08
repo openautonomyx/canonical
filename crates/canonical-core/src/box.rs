@@ -13,13 +13,13 @@ pub struct StructuredBox {
     #[serde(default)]
     pub direction: Value,
     #[serde(default)]
-    pub runs: Vec<MiniRun>,
+    pub boxes: Vec<MiniBox>,
     #[serde(default)]
     pub evidence: Vec<Value>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct MiniRun {
+pub struct MiniBox {
     pub id: String,
     pub seq: u64,
     pub instruction: StructuredInstruction,
@@ -39,21 +39,21 @@ impl StructuredBox {
             created_at: Utc::now(),
             identity,
             direction,
-            runs: Vec::new(),
+            boxes: Vec::new(),
             evidence: Vec::new(),
         }
     }
 
-    pub fn push_run(&mut self, instruction: StructuredInstruction) -> &MiniRun {
-        let run = MiniRun {
+    pub fn push_box(&mut self, instruction: StructuredInstruction) -> &MiniBox {
+        let mini_box = MiniBox {
             id: Uuid::new_v4().to_string(),
-            seq: self.runs.len() as u64,
+            seq: self.boxes.len() as u64,
             instruction,
             state: Value::Object(Default::default()),
             output: Value::Object(Default::default()),
             evidence: Vec::new(),
         };
-        self.runs.push(run);
-        self.runs.last().expect("run was just pushed")
+        self.boxes.push(mini_box);
+        self.boxes.last().expect("mini box was just pushed")
     }
 }
