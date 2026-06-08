@@ -1,17 +1,17 @@
 {
-  "name": "@openautonomyx/canonical",
+  "name": "@openautonomyx/box-proto",
   "version": "0.1.0",
-  "description": "Canonical AutonomyX edge platform CLI wrapper",
+  "description": "Box protocol CLI wrapper",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/openautonomyx/canonical.git"
   },
   "bin": {
-    "canonical-edge": "./npm/bin/canonical-edge.js"
+    "box-proto": "./npm/bin/box-proto.js"
   },
   "files": [
-    "npm/bin/canonical-edge.js",
+    "npm/bin/box-proto.js",
     "README.md",
     "examples"
   ],
@@ -21,9 +21,9 @@
   },
   "keywords": [
     "autonomyx",
-    "canonical",
-    "edge",
     "box",
+    "proto",
+    "edge",
     "evidence",
     "replay"
   ]
