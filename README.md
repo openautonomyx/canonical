@@ -1,80 +1,99 @@
-# OpenAutonomyX Canonical
+# Canonical AutonomyX Platform
 
-OpenAutonomyX Canonical defines the smallest stable core of the ecosystem.
+Canonical AutonomyX is an edge-native platform substrate for recording identity, execution, evidence, and outcome as a replayable workspace.
 
-## Canonical Core
+## Platform Build Block
+
+The first building block is the `platform-build-block`.
+
+It is the smallest reusable unit that records:
 
 ```text
 Identity
-    ↓
-Contract
-    ↓
-ORB
-    ↓
+Execution
+Evidence
 Outcome
 ```
 
-ORB is the canonical operational model.
+into a replayable workspace.
+
+The current Rust implementation is in:
 
 ```text
-Observe
-    ↓
-Reason
-    ↓
-Behave
+crates/canonical-core
 ```
 
-## Principle
+This crate currently implements the `platform-build-block` contract.
 
-Every autonomous identity operates through a contract.
-Every contract executes through ORB.
-Every ORB cycle produces an outcome.
-
-## What ORB Means
-
-### Observe
-
-Observe answers: what is true now?
-
-It gathers context, state, signals, evidence, memory, and events.
-
-### Reason
-
-Reason answers: what should happen?
-
-It evaluates objectives, constraints, alternatives, policy, risk, trust, and approvals.
-
-### Behave
-
-Behave answers: what will happen?
-
-It performs actions, tool calls, transactions, publications, delegations, and state changes.
-
-## What Does Not Belong Here
-
-This repository does not define runtimes, databases, products, UI, deployment architecture, or framework-specific behavior.
-
-Frameworks implement ORB. They do not define ORB.
-
-## Repository Boundary
+## First Executable Loop
 
 ```text
-openautonomyx/canonical
-    = canonical contracts
-
-openautonomyx/foundation
-    = explanation, theory, mappings, reference models
-
-AGenNext/*
-    = implementation
-
-unboxd.cloud
-    = delivery
+task fixture
+  -> canonical workspace
+  -> replay
+  -> validate
+  -> report
 ```
 
-## Canonical Statement
+## Workspace
 
-OpenAutonomyX is the identity.
-Domains are contracts.
-ORB is the execution model.
-Outcomes are the result.
+The workspace is an append-only JSONL file.
+
+Default example path:
+
+```text
+.canonical/session.jsonl
+```
+
+## Run
+
+```bash
+cargo run -p edge-cli -- run \
+  --task examples/tasks/basic-task.json \
+  --workspace .canonical/session.jsonl
+```
+
+## Replay
+
+```bash
+cargo run -p edge-cli -- replay \
+  --workspace .canonical/session.jsonl
+```
+
+## Validate
+
+```bash
+cargo run -p edge-cli -- validate \
+  --workspace .canonical/session.jsonl
+```
+
+## Report
+
+```bash
+cargo run -p edge-cli -- report \
+  --workspace .canonical/session.jsonl \
+  --out reports/out/canonical-edge-report.md
+```
+
+## Crates
+
+```text
+crates/canonical-core
+crates/edge-cli
+```
+
+## Boundary
+
+The platform build block owns the substrate.
+
+Adapters, federation, dashboards, cloud deployment, policy engines, and external systems remain outside the block.
+
+## ActivityPub
+
+ActivityPub alignment is documented in:
+
+```text
+docs/activitypub-alignment.md
+```
+
+ActivityPub is treated as a federation adapter, not as the platform build block.
