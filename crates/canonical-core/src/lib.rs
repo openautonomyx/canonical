@@ -1,3 +1,4 @@
+pub mod contract;
 pub mod r#box;
 pub mod instruction;
 
