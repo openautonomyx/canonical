@@ -2,8 +2,14 @@ syntax = "proto3";
 
 package openautonomyx.canonical.v1;
 
-// ORB = Observe, Reason, Behave
-// Canonical operational model.
+// ORB = Observe, Reason, Behave.
+//
+// ORB is the canonical operational model of autonomy.
+// Runtimes implement ORB; they do not define it.
+//
+// Observe answers: what is true now?
+// Reason answers: what should happen?
+// Behave answers: what will happen?
 
 enum OrbStage {
   ORB_STAGE_UNSPECIFIED = 0;
@@ -12,23 +18,58 @@ enum OrbStage {
   ORB_STAGE_BEHAVE = 3;
 }
 
+// Observe captures the signals, evidence, memory, events, and state used to
+// understand what is true now.
 message Observe {
-  string context_ref = 1;
+  string id = 1;
+  string identity_id = 2;
+  string contract_id = 3;
+  repeated string signal_refs = 4;
+  repeated string evidence_refs = 5;
+  repeated string memory_refs = 6;
+  repeated string event_refs = 7;
+  repeated string state_refs = 8;
+  string context_ref = 9;
 }
 
+// Reason captures objectives, constraints, alternatives, policies, approvals,
+// and decisions created from observed context.
 message Reason {
-  string context_ref = 1;
-  string decision_ref = 2;
+  string id = 1;
+  string identity_id = 2;
+  string contract_id = 3;
+  string observe_id = 4;
+  string objective_ref = 5;
+  repeated string constraint_refs = 6;
+  repeated string alternative_refs = 7;
+  repeated string policy_refs = 8;
+  repeated string approval_refs = 9;
+  string decision_ref = 10;
 }
 
+// Behave captures accountable behavior taken from a reasoned decision.
 message Behave {
-  string decision_ref = 1;
-  string outcome_ref = 2;
+  string id = 1;
+  string identity_id = 2;
+  string contract_id = 3;
+  string reason_id = 4;
+  repeated string action_refs = 5;
+  repeated string tool_call_refs = 6;
+  repeated string delegation_refs = 7;
+  repeated string escalation_refs = 8;
+  repeated string outcome_refs = 9;
 }
 
+// OrbCycle binds Observe, Reason, and Behave into one traceable execution unit.
 message OrbCycle {
   string id = 1;
-  Observe observe = 2;
-  Reason reason = 3;
-  Behave behave = 4;
+  string identity_id = 2;
+  string contract_id = 3;
+  Observe observe = 4;
+  Reason reason = 5;
+  Behave behave = 6;
+  repeated string provenance_refs = 7;
+  repeated string trust_signal_refs = 8;
+  repeated string governance_refs = 9;
+  OrbStage current_stage = 10;
 }
