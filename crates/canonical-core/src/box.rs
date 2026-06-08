@@ -6,7 +6,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 pub const BOX_VERSION: &str = "box.v0.1";
-pub const PACKED_BOX_VERSION: &str = "packed.box.v0.1";
+pub const BOX_PACK_VERSION: &str = "pack.box.v0.1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BoxHeader {
@@ -44,7 +44,7 @@ pub struct StructuredBox {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PackedBox {
+pub struct BoxPack {
     pub format: String,
     pub packed_at: DateTime<Utc>,
     pub box_id: String,
@@ -95,9 +95,9 @@ impl StructuredBox {
         self.payload.boxes.last().expect("micro box was just pushed")
     }
 
-    pub fn pack(self) -> PackedBox {
-        PackedBox {
-            format: PACKED_BOX_VERSION.to_string(),
+    pub fn pack(self) -> BoxPack {
+        BoxPack {
+            format: BOX_PACK_VERSION.to_string(),
             packed_at: Utc::now(),
             box_id: self.header.id.clone(),
             data: self,
@@ -105,10 +105,10 @@ impl StructuredBox {
     }
 }
 
-impl PackedBox {
+impl BoxPack {
     pub fn unpack(self) -> Result<StructuredBox> {
-        if self.format != PACKED_BOX_VERSION {
-            return Err(anyhow!("unsupported packed box format: {}", self.format));
+        if self.format != BOX_PACK_VERSION {
+            return Err(anyhow!("unsupported box pack format: {}", self.format));
         }
         validate_box(&self.data)?;
         Ok(self.data)
