@@ -1,8 +1,11 @@
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+pub const INSTRUCT_BOX: &str = "instruct.box";
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
-pub enum BoxInstruction {
+pub enum InstructionVerb {
     Create,
     Open,
     Append,
@@ -12,35 +15,40 @@ pub enum BoxInstruction {
     Report,
     Seal,
     Ship,
-    Retire,
 }
 
-impl BoxInstruction {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            BoxInstruction::Create => "box.create",
-            BoxInstruction::Open => "box.open",
-            BoxInstruction::Append => "box.append",
-            BoxInstruction::Read => "box.read",
-            BoxInstruction::Verify => "box.verify",
-            BoxInstruction::Replay => "box.replay",
-            BoxInstruction::Report => "box.report",
-            BoxInstruction::Seal => "box.seal",
-            BoxInstruction::Ship => "box.ship",
-            BoxInstruction::Retire => "box.retire",
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum InstructionScope {
+    Edge,
+    Local,
+    Workspace,
+    Registry,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StructuredInstruction {
+    pub root: String,
+    pub verb: InstructionVerb,
+    pub scope: InstructionScope,
+    #[serde(default)]
+    pub constraints: Value,
+    #[serde(default)]
+    pub payload: Value,
+}
+
+impl StructuredInstruction {
+    pub fn instruct_box(verb: InstructionVerb, scope: InstructionScope, payload: Value) -> Self {
+        Self {
+            root: INSTRUCT_BOX.to_string(),
+            verb,
+            scope,
+            constraints: Value::Object(Default::default()),
+            payload,
         }
     }
-}
 
-pub const BOX_INSTRUCTION_SET: &[BoxInstruction] = &[
-    BoxInstruction::Create,
-    BoxInstruction::Open,
-    BoxInstruction::Append,
-    BoxInstruction::Read,
-    BoxInstruction::Verify,
-    BoxInstruction::Replay,
-    BoxInstruction::Report,
-    BoxInstruction::Seal,
-    BoxInstruction::Ship,
-    BoxInstruction::Retire,
-];
+    pub fn is_box_instruction(&self) -> bool {
+        self.root == INSTRUCT_BOX
+    }
+}
