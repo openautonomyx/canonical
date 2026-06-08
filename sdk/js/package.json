@@ -1,0 +1,37 @@
+{
+  "name": "@openautonomyx/canonical",
+  "version": "0.1.0",
+  "description": "Canonical AutonomyX JS SDK for structured instructions and box primitives.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test test/*.test.js",
+    "prepack": "npm run build"
+  },
+  "keywords": [
+    "canonical",
+    "edge",
+    "box",
+    "structured-instructions",
+    "autonomyx"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openautonomyx/canonical.git",
+    "directory": "sdk/js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0"
+  }
+}
