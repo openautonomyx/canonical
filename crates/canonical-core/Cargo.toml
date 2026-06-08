@@ -4,6 +4,10 @@ version = "0.1.0"
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
+description = "Canonical AutonomyX core primitives for edge-native boxes, workspaces, replay, and evidence."
+readme = "README.md"
+keywords = ["edge", "canonical", "evidence", "replay", "autonomy"]
+categories = ["command-line-utilities", "data-structures"]
 
 [dependencies]
 anyhow.workspace = true
