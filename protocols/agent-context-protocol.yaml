@@ -1,0 +1,77 @@
+apiVersion: fabric.openautonomyx.io/v1alpha1
+kind: AgentContextProtocol
+metadata:
+  name: canonical-agent-context-protocol
+
+spec:
+  purpose:
+    - assemble only the context required for an agent action
+    - bind context to identity, policy, contract, time, and tool scope
+    - prevent static, excessive, or unauthorized context
+
+  context_request:
+    required:
+      actor: identity
+      agent: agent_id
+      intent: intent_id
+      contract: contract_id
+      action: action_id
+      target: resource_id
+      time_window: jit_window
+
+  context_sources:
+    - identity_graph
+    - authorization_graph
+    - policy_store
+    - contract_store
+    - memory_store
+    - knowledge_graph
+    - tool_registry
+    - audit_log
+
+  resolution_order:
+    - verify_actor
+    - verify_agent
+    - verify_contract
+    - check_policy
+    - resolve_permissions
+    - resolve_target_scope
+    - resolve_tools
+    - assemble_context
+    - sign_context
+    - execute_with_context
+    - expire_context
+    - audit_context_use
+
+  context_packet:
+    required:
+      context_id: string
+      actor: identity
+      agent: agent_id
+      contract: contract_id
+      allowed_actions: []
+      denied_actions: []
+      allowed_tools: []
+      denied_tools: []
+      allowed_data: []
+      redacted_data: []
+      time_window:
+        start: datetime
+        end: datetime
+      obligations:
+        - audit_required
+        - no_reuse
+        - no_export_without_policy
+        - expire_after_action
+
+  invariants:
+    - no_context_without_identity
+    - no_context_without_contract
+    - no_context_without_policy
+    - no_tool_context_without_scope
+    - no_memory_context_without_permission
+    - no_cross_tenant_context
+    - no_context_reuse_after_expiry
+
+  output:
+    type: signed_jit_context_packet
