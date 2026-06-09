@@ -1,0 +1,20 @@
+apiVersion: fabric.openautonomyx.io/v1alpha1
+kind: GitHubDeploy
+metadata:
+  name: canonical-github-deploy
+spec:
+  repository: openautonomyx/canonical
+  published:
+    - protocols/agent-context-protocol.yaml
+  deployment:
+    source: github
+    mode: declarative
+    target: canonical-repository
+  checks:
+    - file_exists
+    - yaml_valid
+    - protocol_registered
+    - commit_recorded
+  status:
+    state: published
+    commit: 27cefd33093538922e5aa6eb8cecb5e75d2b4197
